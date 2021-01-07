@@ -161,7 +161,10 @@ public class WebMvcAutoConfiguration {
 	@Bean
 	//当手动配置了此类时则不添加此bean
 	@ConditionalOnMissingBean(HiddenHttpMethodFilter.class)
-	//配置文件中要添加上这个配置项才会添加此bean
+	// 配置文件中要添加上这个配置项才会添加此bean
+	// 因为客户端请求并不需要这个配置就可以发送rest请求
+	// 仅仅form表单请求需要
+	// HiddenHttpMethodFilter源码见Spring工程
 	@ConditionalOnProperty(prefix = "spring.mvc.hiddenmethod.filter", name = "enabled", matchIfMissing = false)
 	public OrderedHiddenHttpMethodFilter hiddenHttpMethodFilter() {
 		return new OrderedHiddenHttpMethodFilter();
