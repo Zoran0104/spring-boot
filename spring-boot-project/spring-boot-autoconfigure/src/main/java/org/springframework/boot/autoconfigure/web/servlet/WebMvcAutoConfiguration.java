@@ -194,10 +194,6 @@ public class WebMvcAutoConfiguration {
 	@Order(0)
 	public static class WebMvcAutoConfigurationAdapter implements WebMvcConfigurer {
 
-		private static final Log logger = LogFactory.getLog(WebMvcConfigurer.class);
-
-		private final Resources resourceProperties;
-
 		private final WebMvcProperties mvcProperties;
 
 		private final ListableBeanFactory beanFactory;
