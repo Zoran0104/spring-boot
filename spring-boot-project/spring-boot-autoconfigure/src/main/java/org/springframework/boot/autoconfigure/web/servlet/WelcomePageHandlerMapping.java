@@ -49,6 +49,8 @@ final class WelcomePageHandlerMapping extends AbstractUrlHandlerMapping {
 
 	WelcomePageHandlerMapping(TemplateAvailabilityProviders templateAvailabilityProviders,
 			ApplicationContext applicationContext, Resource welcomePage, String staticPathPattern) {
+		//欢迎页的映射配置，其中规定了staticPathPattern(spring.mvc.static-path-pattern)必须为/**才会进行静态欢迎页映射
+		//否则进行模板映射
 		if (welcomePage != null && "/**".equals(staticPathPattern)) {
 			logger.info("Adding welcome page: " + welcomePage);
 			setRootViewName("forward:index.html");
