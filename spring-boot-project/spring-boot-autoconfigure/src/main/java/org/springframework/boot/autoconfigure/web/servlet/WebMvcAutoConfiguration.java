@@ -211,6 +211,7 @@ public class WebMvcAutoConfiguration {
 				ListableBeanFactory beanFactory, ObjectProvider<HttpMessageConverters> messageConvertersProvider,
 				ObjectProvider<ResourceHandlerRegistrationCustomizer> resourceHandlerRegistrationCustomizerProvider,
 				ObjectProvider<DispatcherServletPath> dispatcherServletPath,
+				//注入原生的servlet，filter，listener
 				ObjectProvider<ServletRegistrationBean<?>> servletRegistrations) {
 			this.mvcProperties = mvcProperties;
 			this.beanFactory = beanFactory;
@@ -410,6 +411,7 @@ public class WebMvcAutoConfiguration {
 		@Override
 		protected void addResourceHandlers(ResourceHandlerRegistry registry) {
 			super.addResourceHandlers(registry);
+			//判断spirng.web.addMappings是否配置为false（禁用静态资源映射）
 			if (!this.resourceProperties.isAddMappings()) {
 				logger.debug("Default resource handling disabled");
 				return;
@@ -435,6 +437,7 @@ public class WebMvcAutoConfiguration {
 			}
 			ResourceHandlerRegistration registration = registry.addResourceHandler(pattern);
 			customizer.accept(registration);
+			//设置缓存时长
 			registration.setCachePeriod(getSeconds(this.resourceProperties.getCache().getPeriod()));
 			registration.setCacheControl(this.resourceProperties.getCache().getCachecontrol().toHttpCacheControl());
 			customizeResourceHandlerRegistration(registration);
