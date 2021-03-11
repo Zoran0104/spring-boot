@@ -101,6 +101,7 @@ public class DispatcherServletAutoConfiguration {
 		@ConditionalOnMissingBean(name = DispatcherServlet.MULTIPART_RESOLVER_BEAN_NAME)
 		public MultipartResolver multipartResolver(MultipartResolver resolver) {
 			// Detect if the user has created a MultipartResolver but named it incorrectly
+			//一个非常有趣的注入bean的方法
 			return resolver;
 		}
 

@@ -142,6 +142,7 @@ import org.springframework.web.util.pattern.PathPatternParser;
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnWebApplication(type = Type.SERVLET)
 @ConditionalOnClass({ Servlet.class, DispatcherServlet.class, WebMvcConfigurer.class })
+//当容器中有这个bean时，该配置类则失效，可以利用此特性全面接管spring-webmvc的配置
 @ConditionalOnMissingBean(WebMvcConfigurationSupport.class)
 @AutoConfigureOrder(Ordered.HIGHEST_PRECEDENCE + 10)
 @AutoConfigureAfter({ DispatcherServletAutoConfiguration.class, TaskExecutionAutoConfiguration.class,
@@ -161,7 +162,12 @@ public class WebMvcAutoConfiguration {
 	private static final String SERVLET_LOCATION = "/";
 
 	@Bean
+	//当手动配置了此类时则不添加此bean
 	@ConditionalOnMissingBean(HiddenHttpMethodFilter.class)
+	// 配置文件中要添加上这个配置项才会添加此bean
+	// 因为客户端请求并不需要这个配置就可以发送rest请求
+	// 仅仅form表单请求需要
+	// HiddenHttpMethodFilter源码见Spring工程
 	@ConditionalOnProperty(prefix = "spring.mvc.hiddenmethod.filter", name = "enabled", matchIfMissing = false)
 	public OrderedHiddenHttpMethodFilter hiddenHttpMethodFilter() {
 		return new OrderedHiddenHttpMethodFilter();
@@ -179,6 +185,10 @@ public class WebMvcAutoConfiguration {
 	@SuppressWarnings("deprecation")
 	@Configuration(proxyBeanMethods = false)
 	@Import(EnableWebMvcConfiguration.class)
+	//启用这两个类属性配置绑定
+	//第一个是spring.mvc开头的配置项
+	//第二个是spring.resources开头的配置项
+	//第三个是spring.web开头的配置项
 	@EnableConfigurationProperties({ WebMvcProperties.class,
 			org.springframework.boot.autoconfigure.web.ResourceProperties.class, WebProperties.class })
 	@Order(0)
@@ -196,10 +206,12 @@ public class WebMvcAutoConfiguration {
 
 		final ResourceHandlerRegistrationCustomizer resourceHandlerRegistrationCustomizer;
 
+		//构造器中的参数从容器中获取
 		public WebMvcAutoConfigurationAdapter(WebProperties webProperties, WebMvcProperties mvcProperties,
 				ListableBeanFactory beanFactory, ObjectProvider<HttpMessageConverters> messageConvertersProvider,
 				ObjectProvider<ResourceHandlerRegistrationCustomizer> resourceHandlerRegistrationCustomizerProvider,
 				ObjectProvider<DispatcherServletPath> dispatcherServletPath,
+				//注入原生的servlet，filter，listener
 				ObjectProvider<ServletRegistrationBean<?>> servletRegistrations) {
 			this.mvcProperties = mvcProperties;
 			this.beanFactory = beanFactory;
@@ -399,6 +411,7 @@ public class WebMvcAutoConfiguration {
 		@Override
 		protected void addResourceHandlers(ResourceHandlerRegistry registry) {
 			super.addResourceHandlers(registry);
+			//判断spirng.web.addMappings是否配置为false（禁用静态资源映射）
 			if (!this.resourceProperties.isAddMappings()) {
 				logger.debug("Default resource handling disabled");
 				return;
@@ -424,6 +437,7 @@ public class WebMvcAutoConfiguration {
 			}
 			ResourceHandlerRegistration registration = registry.addResourceHandler(pattern);
 			customizer.accept(registration);
+			//设置缓存时长
 			registration.setCachePeriod(getSeconds(this.resourceProperties.getCache().getPeriod()));
 			registration.setCacheControl(this.resourceProperties.getCache().getCachecontrol().toHttpCacheControl());
 			customizeResourceHandlerRegistration(registration);
@@ -444,6 +458,7 @@ public class WebMvcAutoConfiguration {
 				FormattingConversionService mvcConversionService, ResourceUrlProvider mvcResourceUrlProvider) {
 			WelcomePageHandlerMapping welcomePageHandlerMapping = new WelcomePageHandlerMapping(
 					new TemplateAvailabilityProviders(applicationContext), applicationContext, getWelcomePage(),
+					//传入的这个参数用于判断spring.mvc.static-path-pattern是否为默认，两套处理映射规则
 					this.mvcProperties.getStaticPathPattern());
 			welcomePageHandlerMapping.setInterceptors(getInterceptors(mvcConversionService, mvcResourceUrlProvider));
 			welcomePageHandlerMapping.setCorsConfigurations(getCorsConfigurations());
